@@ -1,9 +1,12 @@
 import React, { Component } from "react";
 import classes from "./Quiz.module.css";
 import ActiveQuiz from "../../components/AcriveQuiz/ActiveQuiz";
+import FinishedQuiz from "../../components/FinishedQuiz/FinishedQuiz";
 
 export default class Quiz extends Component {
     state = {
+        results: {}, // { id: 'success' or 'error' }
+        isFinished: false,
         activeQuestion: 0,
         answerState: null, // { id: 'success' or 'error' }
         quiz: [
@@ -66,8 +69,15 @@ export default class Quiz extends Component {
         }
 
         const question = this.state.quiz[this.state.activeQuestion];
+        const results = this.state.results;
 
         if (question.rightAnswerId === answerId) {
+            if (!results[question.id]) {
+                results[question.id] = "success";
+                this.setState({
+                    results,
+                });
+            }
             this.setState({
                 answerState: {
                     [answerId]: "success",
@@ -76,7 +86,9 @@ export default class Quiz extends Component {
 
             const timeout = window.setTimeout(() => {
                 if (this.isQuizFinished()) {
-                    console.log("finished");
+                    this.setState({
+                        isFinished: true,
+                    });
                 } else {
                     this.setState({
                         activeQuestion: this.state.activeQuestion + 1,
@@ -87,10 +99,12 @@ export default class Quiz extends Component {
                 window.clearTimeout(timeout);
             }, 1000);
         } else {
+            results[question.id] = "error";
             this.setState({
                 answerState: {
                     [answerId]: "error",
                 },
+                results,
             });
         }
     };
@@ -99,19 +113,32 @@ export default class Quiz extends Component {
         return this.state.activeQuestion + 1 === this.state.quiz.length;
     };
 
+    retryHandler = () => {
+        this.setState({
+            activeQuestion: 0,
+            answerState: null,
+            isFinished: false,
+            results: {},
+        });
+    };
+
     render() {
         return (
             <div className={classes.Quiz}>
                 <div className={classes.QuizWrapper}>
                     <h1>Answer all questions</h1>
-                    <ActiveQuiz
-                        answers={this.state.quiz[this.state.activeQuestion].answers}
-                        question={this.state.quiz[this.state.activeQuestion].question}
-                        onAnswerClick={this.onAnswerClickHandler}
-                        quizLength={this.state.quiz.length}
-                        questionNumber={this.state.activeQuestion + 1}
-                        state={this.state.answerState}
-                    />
+                    {this.state.isFinished ? (
+                        <FinishedQuiz results={this.state.results} quiz={this.state.quiz} onRetry={this.retryHandler} />
+                    ) : (
+                        <ActiveQuiz
+                            answers={this.state.quiz[this.state.activeQuestion].answers}
+                            question={this.state.quiz[this.state.activeQuestion].question}
+                            onAnswerClick={this.onAnswerClickHandler}
+                            quizLength={this.state.quiz.length}
+                            questionNumber={this.state.activeQuestion + 1}
+                            state={this.state.answerState}
+                        />
+                    )}
                 </div>
             </div>
         );
