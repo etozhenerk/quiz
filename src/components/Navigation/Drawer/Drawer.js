@@ -6,17 +6,17 @@ import Backdrop from "../../UI/Backdrop/Backdrop";
 const links = [
     {
         to: "/",
-        label: "Список",
+        label: "Quiz list",
         end: true,
     },
     {
         to: "/auth",
-        label: "Авторизация",
+        label: "Authorization",
         end: false,
     },
     {
         to: "/quiz-creator",
-        label: "Создать тест",
+        label: "Create quiz",
         end: false,
     },
 ];
