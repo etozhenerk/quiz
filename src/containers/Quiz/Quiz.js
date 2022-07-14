@@ -2,61 +2,17 @@ import React, { Component } from "react";
 import classes from "./Quiz.module.css";
 import ActiveQuiz from "../../components/AcriveQuiz/ActiveQuiz";
 import FinishedQuiz from "../../components/FinishedQuiz/FinishedQuiz";
-
-export default class Quiz extends Component {
+import axios from "../../axios/axios-quiz";
+import Loader from "../../components/UI/Loader/Loader";
+import { useParams } from "react-router-dom";
+class Quiz extends Component {
     state = {
-        results: {}, // { id: 'success' or 'error' }
+        results: {},
         isFinished: false,
         activeQuestion: 0,
-        answerState: null, // { id: 'success' or 'error' }
-        quiz: [
-            {
-                question: "What color is the sky?",
-                rightAnswerId: 2,
-                id: 1,
-                answers: [
-                    {
-                        text: "Black",
-                        id: 1,
-                    },
-                    {
-                        text: "Blue",
-                        id: 2,
-                    },
-                    {
-                        text: "Red",
-                        id: 3,
-                    },
-                    {
-                        text: "Green",
-                        id: 4,
-                    },
-                ],
-            },
-            {
-                question: "What year was st petersburg founded?",
-                rightAnswerId: 3,
-                id: 2,
-                answers: [
-                    {
-                        text: "1700",
-                        id: 1,
-                    },
-                    {
-                        text: "1702",
-                        id: 2,
-                    },
-                    {
-                        text: "1703",
-                        id: 3,
-                    },
-                    {
-                        text: "1803",
-                        id: 4,
-                    },
-                ],
-            },
-        ],
+        answerState: null,
+        quiz: [],
+        loading: true,
     };
 
     onAnswerClickHandler = (answerId) => {
@@ -122,12 +78,29 @@ export default class Quiz extends Component {
         });
     };
 
+    async componentDidMount() {
+        try {
+            const response = await axios.get(`/quizes/${this.props.params.id}.json`);
+            const quiz = response.data;
+
+            this.setState({
+                quiz,
+                loading: false,
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     render() {
         return (
             <div className={classes.Quiz}>
                 <div className={classes.QuizWrapper}>
                     <h1>Answer all questions</h1>
-                    {this.state.isFinished ? (
+
+                    {this.state.loading ? (
+                        <Loader />
+                    ) : this.state.isFinished ? (
                         <FinishedQuiz results={this.state.results} quiz={this.state.quiz} onRetry={this.retryHandler} />
                     ) : (
                         <ActiveQuiz
@@ -144,3 +117,9 @@ export default class Quiz extends Component {
         );
     }
 }
+
+// eslint-disable-next-line import/no-anonymous-default-export
+export default () => {
+    const params = useParams();
+    return <Quiz params={params} />;
+};
